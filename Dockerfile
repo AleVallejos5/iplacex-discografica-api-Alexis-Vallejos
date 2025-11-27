@@ -20,9 +20,7 @@ RUN gradle build -x test --no-daemon
 # Stage 2: Ejecución
 FROM eclipse-temurin:17-jre-alpine
 
-# Instalar dependencias básicas si es necesario
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
+
 
 # Establecer directorio de trabajo
 WORKDIR /app
