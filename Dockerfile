@@ -7,18 +7,18 @@ WORKDIR /app
 # Copiar archivos necesarios para cache de dependencias
 COPY build.gradle .
 COPY settings.gradle .
+COPY gradlew .
 COPY gradle gradle
 COPY src src
 
 # Dar permisos apropiados para gradle
-RUN chown -R gradle:gradle /app
-USER gradle
+RUN chmod +x ./gradlew
 
 # Construir el JAR (excluyendo tests para mayor velocidad)
 RUN gradle build -x test --no-daemon
 
 # Stage 2: Ejecución
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jre-alpine
 
 # Instalar dependencias básicas si es necesario
 RUN apt-get update && apt-get install -y --no-install-recommends \
