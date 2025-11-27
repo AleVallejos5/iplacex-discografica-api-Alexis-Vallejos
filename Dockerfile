@@ -1,35 +1,34 @@
-# Stage 1: Build con Gradle
-FROM gradle:7.4.2-jdk17 AS builder
+# Stage 1: Build con Gradle - versión más actualizada
+FROM gradle:8.14.0-jdk17 AS builder
 
-# Establecer directorio de trabajo
+
+
 WORKDIR /app
 
-# Copiar archivos necesarios para cache de dependencias
+# Copiar archivos de configuración primero (para mejor cache)
 COPY build.gradle .
 COPY settings.gradle .
 COPY gradlew .
 COPY gradle gradle
+
+# Descargar dependencias (cache layer)
+RUN ./gradlew dependencies --no-daemon
+
+# Copiar código fuente
 COPY src src
 
-# Dar permisos apropiados para gradle
+# Dar permisos y construir
 RUN chmod +x ./gradlew
+RUN ./gradlew clean build -x test --no-daemon
 
-# Construir el JAR (excluyendo tests para mayor velocidad)
-RUN gradle build -x test --no-daemon
-
-# Stage 2: Ejecución
+# Stage 2: Runtime
 FROM eclipse-temurin:17-jre-alpine
-
-
-
-# Establecer directorio de trabajo
+ 
 WORKDIR /app
 
-# Copiar el JAR desde el stage de build
+# Copiar el JAR
 COPY --from=builder /app/build/libs/*.jar app.jar
-
-# Exponer puerto (Render usa puerto 8080 por defecto)
+ 
 EXPOSE 8080
-
-# Comando de ejecución
+ 
 ENTRYPOINT ["java", "-jar", "app.jar"]
